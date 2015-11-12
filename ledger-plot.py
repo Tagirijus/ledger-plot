@@ -475,11 +475,11 @@ class plot_class(object):
 			debug.append( 'set boxwidth ' + str(float(1.0 / len(self.accounts)) ) + ' relative' )
 
 		# set up box multiplicator (depends if it is for years, months or days)
-		if self.rate == '%Y-%m-%d' or self.frequency == '':
+		if (self.count and self.rate == '%Y-%m-%d') or (not self.count and self.frequency == ''):
 			box_multi = 24
-		elif self.rate == '%Y-%m' or self.frequency == '-M':
+		elif (self.count and self.rate == '%Y-%m') or (not self.count and self.frequency == '-M'):
 			box_multi = 24 * 30
-		elif self.rate == '%Y' or self.frequency == '-Y':
+		elif (self.count and self.rate == '%Y') or (not self.count and self.frequency == '-Y'):
 			box_multi = 24 * 365
 		else:
 			box_multi = 1
