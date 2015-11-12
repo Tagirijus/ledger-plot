@@ -197,6 +197,9 @@ class plot_class(object):
 		if is_time_journal:
 			out = self.time_convert(out)
 
+		print 'DEBUG:', out
+		print
+		print 'DEBUG:', self.sum_same(out)
 		return self.sum_same(out)
 
 
@@ -266,7 +269,7 @@ class plot_class(object):
 		# cycling through days
 		if self.frequency == '':
 			for x in xrange(0, len(in_array) ):
-				if x > 0 and self.autozero:
+				if x > 0 and self.autozero and self.total == '-j':
 					ds = datetime.datetime.strptime( in_array[x-1].split(' ')[0], self.rate)
 					de = datetime.datetime.strptime( in_array[x].split(' ')[0], self.rate)
 					diff = (de-ds).days
@@ -277,7 +280,7 @@ class plot_class(object):
 		# cycling through months
 		elif self.frequency == '-M':
 			for x in xrange(0, len(in_array) ):
-				if x > 0 and self.autozero:
+				if x > 0 and self.autozero and self.total == '-j':
 					ds = datetime.datetime.strptime( in_array[x-1].split(' ')[0], self.rate)
 					de = datetime.datetime.strptime( in_array[x].split(' ')[0], self.rate)
 					diff = diff_month(ds, de)
@@ -288,7 +291,7 @@ class plot_class(object):
 		# cycling through years
 		elif self.frequency == '-Y':
 			for x in xrange(0, len(in_array) ):
-				if x > 0 and self.autozero:
+				if x > 0 and self.autozero and self.total == '-j':
 					ds = datetime.datetime.strptime( in_array[x-1].split(' ')[0], self.rate)
 					de = datetime.datetime.strptime( in_array[x].split(' ')[0], self.rate)
 					diff = diff_year(ds, de)
