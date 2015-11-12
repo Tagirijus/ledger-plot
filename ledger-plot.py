@@ -123,9 +123,9 @@ class plot_class(object):
 					# getting count from ledger output
 					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
-					if tmp_out == '':
+					if tmp_out == '' and self.autozero:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
-					else:
+					elif tmp_out:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out.split(' ')[0] )
 			# months
 			elif self.rate == '%Y-%m':
@@ -144,9 +144,9 @@ class plot_class(object):
 					# getting count from ledger output
 					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
-					if tmp_out == '':
+					if tmp_out == '' and self.autozero:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
-					else:
+					elif tmp_out:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out.split(' ')[0] )
 			# years
 			elif self.rate == '%Y':
@@ -165,9 +165,9 @@ class plot_class(object):
 					# getting count from ledger output
 					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
-					if tmp_out == '':
+					if tmp_out == '' and self.autozero:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
-					else:
+					elif tmp_out:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out.split(' ')[0] )
 		else:
 			out = self.fill_dates( os.popen('ledger -f ' + ledger_file + ' ' + self.frequency + ' ' + self.span + ' ' + self.total + ' r ' + acc).read().splitlines() )
