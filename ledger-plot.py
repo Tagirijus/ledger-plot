@@ -85,6 +85,7 @@ class plot_class(object):
 		self.start		= '1900/01/01'
 		self.ende		= '9999/12/31'
 		self.span 		= '-d "d>=[' + self.start + '] and d<=[' + self.ende + ']"'
+		self.frequency	= ''
 		self.accounts	= []
 		self.accnames	= []
 
@@ -102,8 +103,8 @@ class plot_class(object):
 			# get the real first and the last date of the ledger journal and its account
 			tmp_led = os.popen( 'ledger -f ' + ledger_file + ' -p "from ' + self.start + ' to ' + self.ende + '" -J r ' + acc).read().splitlines()
 			if len(tmp_led) > 1:
-				real_start = tmp_led[0][0: tmp_led[0].find(' ') ].replace('-', '/')
-				real_ende  = tmp_led[len(tmp_led)-1][0: tmp_led[len(tmp_led)-1].find(' ') ].replace('-', '/')
+				real_start = tmp_led[0].split(' ')[0].replace('-', '/')
+				real_ende  = tmp_led[len(tmp_led)-1].split(' ')[0].replace('-', '/')
 			else:
 				return out
 
@@ -120,12 +121,12 @@ class plot_class(object):
 					# getting actual date in cycle
 					this_date = (tmp_date + datetime.timedelta(days=x)).strftime(self.fmt)
 					# getting count from ledger output
-					tmp_out = os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().rstrip()
+					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
 					if tmp_out == '':
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
 					else:
-						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out[0: tmp_out.find(' ') ] )
+						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out.split(' ')[0] )
 			# months
 			elif self.rate == '%Y-%m':
 				# correct real dates
@@ -141,12 +142,12 @@ class plot_class(object):
 					# getting actual date in cycle
 					this_date = add_month(tmp_date,x).strftime(self.fmt)
 					# getting count from ledger output
-					tmp_out = os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().rstrip()
+					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
 					if tmp_out == '':
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
 					else:
-						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out[0: tmp_out.find(' ') ] )
+						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out.split(' ')[0] )
 			# years
 			elif self.rate == '%Y':
 				# correct real dates
@@ -162,14 +163,58 @@ class plot_class(object):
 					# getting actual date in cycle
 					this_date = add_year(tmp_date,x).strftime(self.fmt)
 					# getting count from ledger output
-					tmp_out = os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().rstrip()
+					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
 					if tmp_out == '':
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
 					else:
-						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out[0: tmp_out.find(' ') ] )
+						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out.split(' ')[0] )
 		else:
-			out = self.fill_dates( os.popen('ledger -f ' + ledger_file + ' ' + self.span + ' ' + self.total + ' r ' + acc).read().splitlines() )
+			out = self.fill_dates( os.popen('ledger -f ' + ledger_file + ' ' + self.frequency + ' ' + self.span + ' ' + self.total + ' r ' + acc).read().splitlines() )
+
+		return self.sum_same(out)
+
+
+	def sum_counts(self, in_array):
+		# returns a string
+		out = ''
+
+		# cycle through array and add first value
+		val = 0
+		for x in in_array:
+			val += int(x.split(' ')[0])
+
+		# prepare output
+		if len(in_array) > 0:
+			out = str(val) + ' -'
+
+		return out
+
+
+	def sum_same(self, in_array):
+		# returns an array
+		out = []
+
+		# sums values on same date
+		amount = 0
+		for y, x in enumerate(in_array):
+			if y > 0:
+				# the actual date is the same as the last
+				if last == x.split(' ')[0]:
+					# add its amount to the last ones
+					amount += float(x.split(' ')[1])
+				else:
+					# its a new date, put last date + amount into the output array
+					out.append( last + ' ' + str(amount) )
+					# and reasign / reset 'last' and 'amount'
+					last = x.split(' ')[0]
+					amount = float(x.split(' ')[1])
+			else:
+				# add the first line into the temp variables 'last' (date) and 'amount' (value)
+				last = x.split(' ')[0]
+				amount += float(x.split(' ')[1])
+		if len(in_array) > 0:
+			out.append( last + ' ' + str(amount) )
 
 		return out
 
@@ -179,14 +224,40 @@ class plot_class(object):
 
 		# cycle through the entries of the array
 		out = []
-		for x in xrange(0, len(in_array) ):
-			if x > 0 and self.autozero:
-				ds = datetime.datetime.strptime( in_array[x-1][ 0 : in_array[x-1].find(' ') ], self.rate)
-				de = datetime.datetime.strptime( in_array[x][ 0 : in_array[x].find(' ') ], self.rate)
-				diff = (de-ds).days
-				for y in xrange(1,diff):
-					out.append( (ds + datetime.timedelta(days=y)).strftime(self.rate + ' 0') )
-			out.append( in_array[x] )
+
+		# cycling through days
+		if self.frequency == '':
+			for x in xrange(0, len(in_array) ):
+				if x > 0 and self.autozero:
+					ds = datetime.datetime.strptime( in_array[x-1].split(' ')[0], self.rate)
+					de = datetime.datetime.strptime( in_array[x].split(' ')[0], self.rate)
+					diff = (de-ds).days
+					for y in xrange(0,diff):
+						out.append( (ds + datetime.timedelta(days=y)).strftime(self.rate + ' 0') )
+				out.append( in_array[x] )
+
+		# cycling through months
+		elif self.frequency == '-M':
+			for x in xrange(0, len(in_array) ):
+				if x > 0 and self.autozero:
+					ds = datetime.datetime.strptime( in_array[x-1].split(' ')[0], self.rate)
+					de = datetime.datetime.strptime( in_array[x].split(' ')[0], self.rate)
+					diff = diff_month(ds, de)
+					for y in xrange(0,diff):
+						out.append( add_month(ds, y).strftime(self.rate + ' 0') )
+				out.append( in_array[x] )
+
+		# cycling through years
+		elif self.frequency == '-Y':
+			for x in xrange(0, len(in_array) ):
+				if x > 0 and self.autozero:
+					ds = datetime.datetime.strptime( in_array[x-1].split(' ')[0], self.rate)
+					de = datetime.datetime.strptime( in_array[x].split(' ')[0], self.rate)
+					diff = diff_year(ds, de)
+					for y in xrange(0,diff):
+						out.append( add_year(ds, y).strftime(self.rate + ' 0') )
+				out.append( in_array[x] )
+
 		return out
 
 
@@ -228,6 +299,9 @@ class plot_class(object):
 	def chose_count(self):
 		user = raw_input('Count entries? [no]: ')
 		end(user)
+
+		print
+
 		if not user:
 			user = 'no'
 
@@ -245,6 +319,17 @@ class plot_class(object):
 				self.fmt = '%Y/%m'
 				self.start = self.start[0:7]
 				self.ende = self.ende[0:7]
+		else:
+			user = raw_input('Rate: (y)ear, (m)onth or (n)ormal? [normal]: ')
+			end(user)
+			if user.lower() == 'year' or user.lower() == 'y':
+				self.start = self.start[0:4]
+				self.ende = self.ende[0:4]
+				self.frequency = '-Y'
+			elif user.lower() == 'month' or user.lower() == 'm':
+				self.start = self.start[0:7]
+				self.ende = self.ende[0:7]
+				self.frequency = '-M'
 
 		print
 		self.chose_timespan()
@@ -390,11 +475,11 @@ class plot_class(object):
 			debug.append( 'set boxwidth ' + str(float(1.0 / len(self.accounts)) ) + ' relative' )
 
 		# set up box multiplicator (depends if it is for years, months or days)
-		if self.rate == '%Y-%m-%d':
+		if self.rate == '%Y-%m-%d' or self.frequency == '':
 			box_multi = 24
-		elif self.rate == '%Y-%m':
+		elif self.rate == '%Y-%m' or self.frequency == '-M':
 			box_multi = 24 * 30
-		elif self.rate == '%Y':
+		elif self.rate == '%Y' or self.frequency == '-Y':
 			box_multi = 24 * 365
 		else:
 			box_multi = 1
