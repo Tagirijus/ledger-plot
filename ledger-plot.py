@@ -297,19 +297,35 @@ class plot_class(object):
 		# check if mode is "count entries" or not
 		# check if ouput should contain total or relative values
 		if not self.count:
-			user = raw_input('Show (t)otal or (r)elative values? [total]: ')
-			end(user)
-			if user:
-				self.total = '-j'
-				self.span = '-p "from ' + self.start + ' to ' + self.ende + '"'
-			else:
-				# check if past values should be included, if ouput contains total values
-				user = raw_input('Include past values? [yes]: ')
+			correct = False
+			while not correct:
+				user = raw_input('Show (t)otal or (r)elative values? [total]: ')
 				end(user)
 				if not user:
-					self.span = '-d "d>=[' + self.start + '] and d<=[' + self.ende + ']"'
-				else:
+					user = 'total'
+				if user == 'r' or user == 'relative':
+					self.total = '-j'
 					self.span = '-p "from ' + self.start + ' to ' + self.ende + '"'
+					correct = True
+				elif user == 't' or user == 'total':
+					# check if past values should be included, if ouput contains total values
+					correct2 = False
+					while not correct2:
+						user = raw_input('Include past values? [yes]: ')
+						end(user)
+						if not user:
+							user = 'yes'
+						if user == 'yes' or user == 'y':
+							self.span = '-d "d>=[' + self.start + '] and d<=[' + self.ende + ']"'
+							correct2 = True
+						elif user == 'no' or user == 'n':
+							self.span = '-p "from ' + self.start + ' to ' + self.ende + '"'
+							correct2 = True
+						else:
+							print 'Wrong input. Try again.'
+					correct = True
+				else:
+					print 'Wrong input. Try again.'
 
 		print
 		self.chose_accounts()
