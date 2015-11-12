@@ -477,10 +477,16 @@ class plot_class(object):
 		# set up box multiplicator (depends if it is for years, months or days)
 		if (self.count and self.rate == '%Y-%m-%d') or (not self.count and self.frequency == ''):
 			box_multi = 24
+			print >> gp, 'set format x "%Y-%m-%d"'
+			debug.append( 'set format x "%Y-%m-%d"' )
 		elif (self.count and self.rate == '%Y-%m') or (not self.count and self.frequency == '-M'):
 			box_multi = 24 * 30
+			print >> gp, 'set format x "%Y-%m"'
+			debug.append( 'set format x "%Y-%m"' )
 		elif (self.count and self.rate == '%Y') or (not self.count and self.frequency == '-Y'):
 			box_multi = 24 * 365
+			print >> gp, 'set format x "%Y"'
+			debug.append( 'set format x "%Y"' )
 		else:
 			box_multi = 1
 
