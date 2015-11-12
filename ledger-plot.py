@@ -472,7 +472,10 @@ class plot_class(object):
 				print 'Please enter at least one account name.'
 			else:
 				if not user in self.accnames:
-					self.accnames.append(user)
+					if user == ' ':
+						self.accnames.append('All')
+					else:
+						self.accnames.append(user)
 					self.accounts.append( self.get_array(ledger_file, user) )
 				else:
 					print 'Account already added.'
