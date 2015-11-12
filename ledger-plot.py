@@ -197,9 +197,10 @@ class plot_class(object):
 		if is_time_journal:
 			out = self.time_convert(out)
 
-		print 'DEBUG:', out
-		print
-		print 'DEBUG:', self.sum_same(out)
+		if debug_output:
+			print 'DEBUG:', out
+			print
+			print 'DEBUG:', self.sum_same(out)
 		return self.sum_same(out)
 
 
