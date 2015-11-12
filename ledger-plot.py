@@ -1,6 +1,6 @@
 # coding=utf-8
 
-import os, sys, datetime
+import os, sys, datetime, re
 
 
 
@@ -11,6 +11,7 @@ import os, sys, datetime
 output_size 	= '1000, 600'
 output_file 	= 'ledger_plot.png'
 debug_output 	= False
+time_conversion	= 3600					# means that 3600 seconds are one hour; enter 60 for getting minutes
 
 #
 ##
@@ -38,6 +39,21 @@ if os.path.exists(ledger_file):
 	if not os.path.isfile(ledger_file):
 		print 'Given \'ledger file\' is not a file.'
 		exit()
+	else:
+		# ... and check if it is a time journal
+		f = open(ledger_file, 'r')
+		journal_type = f.read()
+		f.close()
+
+		# check if a time journal pattern exists anywhere in the journal
+		pattern = re.compile('i [0-9]{4}\/[0-9]{2}\/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}')
+		if pattern.match(journal_type):
+			is_time_journal = True
+		else:
+			is_time_journal = False
+
+
+
 
 
 
@@ -98,6 +114,12 @@ class plot_class(object):
 
 		out = []
 
+		# is it a time journal?
+		if is_time_journal:
+			time_base = '--base'
+		else:
+			time_base = ''
+
 		# check if mode is "count entries" or normal like "standard ledger analyze output"
 		if self.count:
 			# get the real first and the last date of the ledger journal and its account
@@ -121,7 +143,7 @@ class plot_class(object):
 					# getting actual date in cycle
 					this_date = (tmp_date + datetime.timedelta(days=x)).strftime(self.fmt)
 					# getting count from ledger output
-					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
+					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' ' + time_base + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
 					if tmp_out == '' and self.autozero:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
@@ -142,7 +164,7 @@ class plot_class(object):
 					# getting actual date in cycle
 					this_date = add_month(tmp_date,x).strftime(self.fmt)
 					# getting count from ledger output
-					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
+					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' ' + time_base + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
 					if tmp_out == '' and self.autozero:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
@@ -163,16 +185,28 @@ class plot_class(object):
 					# getting actual date in cycle
 					this_date = add_year(tmp_date,x).strftime(self.fmt)
 					# getting count from ledger output
-					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
+					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' ' + time_base + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
 					if tmp_out == '' and self.autozero:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
 					elif tmp_out:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out.split(' ')[0] )
 		else:
-			out = self.fill_dates( os.popen('ledger -f ' + ledger_file + ' ' + self.frequency + ' ' + self.span + ' ' + self.total + ' r ' + acc).read().splitlines() )
+			out = self.fill_dates( os.popen('ledger -f ' + ledger_file + ' ' + time_base + ' ' + self.frequency + ' ' + self.span + ' ' + self.total + ' r ' + acc).read().splitlines() )
+
+		if is_time_journal:
+			out = self.time_convert(out)
 
 		return self.sum_same(out)
+
+
+	def time_convert(self, in_array):
+		# returns the array with converted time
+		out = []
+		for x in in_array:
+			out.append( x.split(' ')[0] + ' ' + str( float(x.split(' ')[1]) / time_conversion ) )
+
+		return out
 
 
 	def sum_counts(self, in_array):
@@ -201,8 +235,12 @@ class plot_class(object):
 			if y > 0:
 				# the actual date is the same as the last
 				if last == x.split(' ')[0]:
-					# add its amount to the last ones
-					amount += float(x.split(' ')[1])
+					# add its amount to the last ones, when self.total is '-j'
+					if self.total == '-j':
+						amount += float(x.split(' ')[1])
+					# or the amount is the actual amount, since self.total '-J' shows the total already
+					elif self.total == '-J':
+						amount = float(x.split(' ')[1])
 				else:
 					# its a new date, put last date + amount into the output array
 					out.append( last + ' ' + str(amount) )
@@ -457,6 +495,9 @@ class plot_class(object):
 		if self.count:
 			print >> gp, 'set ylabel "N"'
 			debug.append( 'set ylabel "N"' )
+		elif not self.count and is_time_journal:
+			print >> gp, 'set ylabel "Time"'
+			debug.append( 'set ylabel "Time"' )
 		else:
 			print >> gp, 'set ylabel "EUR"'
 			debug.append( 'set ylabel "EUR"' )
