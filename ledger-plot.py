@@ -113,8 +113,18 @@ class plot_class(object):
 	def get_array(self, ledger_file, account):
 		# generates an array from the ledger output (every line is an array entry)
 
-		# make account parameter string in ""
-		acc = '"' + account + '"'
+		# check if excluding accounts exists
+		if 'not:' in account:
+			# get exclude accounts
+			exc = account[account.find(' not:')+5:].split(',')
+			# remove possible spaces at beginning or end of each account name and put it in ""
+			exc = ['"' + x.strip(' ') + '"' for x in exc]
+			# make account (with 'nots') parameter string in ""
+			acc = '"' + account[0: account.find(' not:') ] + '" and not ' + ' and not '.join(exc)
+		else:
+			# make account parameter string in ""
+			acc = '"' + account + '"'
+			exc = []
 
 		out = []
 
@@ -468,6 +478,7 @@ class plot_class(object):
 		correct = False
 		while not correct:
 			print 'Accounts: ' + ', '.join(self.accnames)
+			print '(Add " not: NAME1, NAME2, ..." for excluding Accounts)'
 			user = raw_input('Add account: ')
 			end(user)
 			if not user and not len(self.accounts) == 0:
@@ -477,9 +488,25 @@ class plot_class(object):
 			else:
 				if not user in self.accnames:
 					if user == ' ':
-						self.accnames.append('All')
+						# special function for adding all accounts at once (no exclude possible)
+						if not 'All' in self.accnames:
+							# add 'All' to the account names list
+							self.accnames.append('All')
+						else:
+							print 'Account already added.'
 					else:
-						self.accnames.append(user)
+						# add user input to account names list
+						if not 'not:' in user:
+							# no exclude accounts
+							self.accnames.append(user)
+						else:
+							# exclude accounts exists
+							exc = user[user.find(' not:')+5:].split(',')
+							# remove possible spaces at beginning or end of each account name and put it in ""
+							exc = [x.strip(' ') for x in exc]
+							# make account (with 'nots') parameter string in ""
+							acc = user[0: user.find(' not:') ] + ' (not: ' + ', '.join(exc) + ')'
+							self.accnames.append(acc)
 					self.accounts.append( self.get_array(ledger_file, user) )
 				else:
 					print 'Account already added.'
