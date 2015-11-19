@@ -113,18 +113,22 @@ class plot_class(object):
 	def get_array(self, ledger_file, account):
 		# generates an array from the ledger output (every line is an array entry)
 
+		# check if 'par:' exists for manual parameter adding
+		if 'par:' in account:
+			acc = account[account.find(' par:')+5:]
 		# check if excluding accounts exists
-		if 'not:' in account:
+		elif not 'par:' in account and 'not:' in account:
 			# get exclude accounts
 			exc = account[account.find(' not:')+5:].split(',')
 			# remove possible spaces at beginning or end of each account name and put it in ""
 			exc = ['"' + x.strip(' ') + '"' for x in exc]
 			# make account (with 'nots') parameter string in ""
 			acc = '"' + account[0: account.find(' not:') ] + '" and not ' + ' and not '.join(exc)
+		# otherwise ...
 		else:
 			# make account parameter string in ""
 			acc = '"' + account + '"'
-			exc = []
+
 
 		out = []
 
@@ -475,10 +479,13 @@ class plot_class(object):
 	def chose_accounts(self):
 		global ledger_file
 
+		print '(+ " not: NAME1, NAME2, ..." = exclude accounts)'
+		print '(+ " par: PARAMETERS" = manual parameters)'
+		print
+
 		correct = False
 		while not correct:
 			print 'Accounts: ' + ', '.join(self.accnames)
-			print '(Add " not: NAME1, NAME2, ..." for excluding Accounts)'
 			user = raw_input('Add account: ')
 			end(user)
 			if not user and not len(self.accounts) == 0:
@@ -496,10 +503,10 @@ class plot_class(object):
 							print 'Account already added.'
 					else:
 						# add user input to account names list
-						if not 'not:' in user:
-							# no exclude accounts
-							self.accnames.append(user)
-						else:
+						if not 'not:' in user and 'par:' in user:
+							# add just the name without manually added parameters
+							self.accnames.append( user[0: user.find(' par:') ] )
+						elif 'not:' in user and not 'par:' in user:
 							# exclude accounts exists
 							exc = user[user.find(' not:')+5:].split(',')
 							# remove possible spaces at beginning or end of each account name and put it in ""
@@ -507,6 +514,9 @@ class plot_class(object):
 							# make account (with 'nots') parameter string in ""
 							acc = user[0: user.find(' not:') ] + ' (not: ' + ', '.join(exc) + ')'
 							self.accnames.append(acc)
+						else:
+							# no exclude accounts
+							self.accnames.append(user)
 					self.accounts.append( self.get_array(ledger_file, user) )
 				else:
 					print 'Account already added.'
