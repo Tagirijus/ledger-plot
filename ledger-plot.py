@@ -97,6 +97,7 @@ class plot_class(object):
 	def __init__(self):
 		# some inits of rsome variables used later
 		self.style		= 'lines'
+		self.label		= False
 		self.autozero	= False
 		self.total		= '-J'
 		self.count		= False
@@ -327,8 +328,10 @@ class plot_class(object):
 			print '(1) Lines'
 			print '(2) Linespoints'
 			print '(3) Boxes'
-			print '(4) Linespoints (Autozero)'
-			print '(5) Boxes (Autozero)'
+			print '(4) Boxes + Label'
+			print '(5) Linespoints (Autozero)'
+			print '(6) Boxes (Autozero)'
+			print '(7) Boxes (Autozero) + Label'
 			user = raw_input('Style [1]: ')
 			end(user)
 			if not user:
@@ -347,11 +350,18 @@ class plot_class(object):
 		elif user == 3:
 			self.style = 'boxes'
 		elif user == 4:
+			self.style = 'boxes'
+			self.label = True
+		elif user == 5:
 			self.style = 'linespoints'
 			self.autozero = True
-		elif user == 5:
+		elif user == 6:
 			self.style = 'boxes'
 			self.autozero = True
+		elif user == 7:
+			self.style = 'boxes'
+			self.autozero = True
+			self.label = True
 
 		self.chose_count()
 
@@ -552,7 +562,15 @@ class plot_class(object):
 		print >> gp, 'set timefmt "' + self.rate + '"'
 		debug.append( 'set timefmt "' + self.rate + '"' )
 
-		# set up style
+		# set up style for grid
+		print >> gp, 'set grid nopolar'
+		debug.append( 'set grid nopolar' )
+		print >> gp, 'set grid noxtics nomxtics ytics nomytics noztics nomztics nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics'
+		debug.append( 'set grid noxtics nomxtics ytics nomytics noztics nomztics nox2tics nomx2tics noy2tics nomy2tics nocbtics nomcbtics' )
+		print >> gp, 'set grid layerdefault lt 0 linewidth 0.500, lt 0 linewidth 0.500'
+		debug.append( 'set grid layerdefault lt 0 linewidth 0.500, lt 0 linewidth 0.500' )
+
+		# set up style for graph
 		if self.style == 'linespoints':
 			#print >> gp, 'set style line 1 lt 1 lw 2 pt 7 ps 1.5'
 			#self.style += ' ls 1'
@@ -579,14 +597,19 @@ class plot_class(object):
 		else:
 			box_multi = 1
 
+
 		# generate plot string
 		plot_str = 'plot "-" using 1:2 title "' + self.accnames[0] + '" with ' + self.style
+		if self.label:
+			plot_str += ', "" using 1:2:2 with labels center offset 0,1 notitle'
 		for x in xrange(1,len(self.accounts)):
 			if self.style == 'boxes':
 				tmp_using = '(timecolumn(1)+3600*' + str( float(1.0 / len(self.accounts)) * x * box_multi ) + '):2'
 			else:
 				tmp_using = '1:2'
 			plot_str += ', "" using ' + tmp_using + ' title "' + self.accnames[x] + '" with ' + self.style
+			if self.label:
+				plot_str += ', "" using ' + tmp_using + ':2 with labels center offset 0,1 notitle'
 		print >> gp, plot_str
 		debug.append( plot_str )
 
@@ -598,6 +621,14 @@ class plot_class(object):
 				debug.append( str(self.accounts[x][y]) )
 			print >> gp, 'e'
 			debug.append( 'e' )
+
+			if self.label:
+				for y in xrange(0,len(self.accounts[x])):
+					# round the output number
+					print >> gp, str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(round(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])))) )
+					debug.append( str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(round(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])))) ) )
+				print >> gp, 'e'
+				debug.append( 'e' )
 
 		# debug ouput
 		if debug_output:
