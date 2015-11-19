@@ -50,7 +50,11 @@ if os.path.exists(ledger_file):
 		if pattern.match(journal_type):
 			is_time_journal = True
 		else:
-			is_time_journal = False
+			# or check if at least a "; time" comment exists
+			if "; time" in journal_type:
+				is_time_journal = True
+			else:
+				is_time_journal = False
 
 
 
