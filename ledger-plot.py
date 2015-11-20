@@ -1,21 +1,68 @@
 # coding=utf-8
 
-import os, sys, datetime, re
+import os, sys, datetime, re, imp
 
 
+### ### ###
+### ### ### load configurarion file for variables
+### ### ###
+
+# !!!!! SET YOU INDIVIDUAL SETTINGS FILE HERE
+# !!!!! IT MUST BE SET UP LIKE THE 'ledger-add-settings-default.py' FILE
+####
+###
+#
+
+SETTINGS_FILE = 'ledger-plot-settings.py'
 
 #
-# CONFIGURATION
-#
+###
+####
+# !!!!!
+# !!!!!
 
-output_size 	= '1000, 600'
-output_file 	= 'ledger_plot.png'
+# get the actual path to the python script
+path_to_project = os.path.dirname(os.path.realpath(__file__))
+
+# check if user set an individual settings file, or load default otherwise
+
+if os.path.isfile(path_to_project + '/' + SETTINGS_FILE):
+	configuration = imp.load_source('ledger-plot-settings', path_to_project + '/' + SETTINGS_FILE)
+else:
+	if os.path.isfile(path_to_project + '/ledger-plot-settings-default.py'):
+		configuration = imp.load_source('ledger-plot-settings', path_to_project + '/ledger-plot-settings-default.py')
+	else:
+		print 'No settings file found.'
+		exit()
+
+
+
+# getting the variables from the settings file - don't change the values here!
+
 debug_output 	= False
-time_conversion	= 3600					# means that 3600 seconds are one hour; enter 60 for getting minutes
 
-#
-##
-#
+output_size 	= configuration.output_size
+output_file 	= configuration.output_file
+time_conversion	= configuration.time_conversion
+
+info_text	 =  configuration.info_text
+
+colorize = configuration.colorize
+
+CL_TXT = configuration.CL_TXT
+CL_INF = configuration.CL_INF
+CL_DEF = configuration.CL_DEF
+CL_DIM = configuration.CL_DIM
+CL_OUT = configuration.CL_OUT
+CL_E = configuration.CL_E
+
+### ### ###
+### ### ### load configurarion file for variables - END
+### ### ###
+
+
+# color info_text
+info_text = CL_INF + info_text + CL_E
 
 
 
@@ -28,7 +75,7 @@ if len(arguments) < 2:
 		ledger_file = os.environ['LEDGER_FILE_PATH'] + '/ledger.journal'
 	except Exception:
 		# nothing set, quit programm
-		print 'No arguments given and environment variable LEDGER_FILE_PATH is not set.'
+		print CL_INF + 'No arguments given and environment variable LEDGER_FILE_PATH is not set.' + CL_E
 		exit()
 else:
 	# using the argument as the file
@@ -37,7 +84,7 @@ else:
 # check if it exists and if it's a real file
 if os.path.exists(ledger_file):
 	if not os.path.isfile(ledger_file):
-		print 'Given \'ledger file\' is not a file.'
+		print CL_INF + 'Given \'ledger file\' is not a file.' + CL_E
 		exit()
 	else:
 		# ... and check if it is a time journal
@@ -323,16 +370,19 @@ class plot_class(object):
 
 
 	def chose_style(self):
+		# print info_text
+		print info_text
+
 		correct = False
 		while not correct:
-			print '(1) Lines'
-			print '(2) Linespoints'
-			print '(3) Boxes'
-			print '(4) Boxes + Label'
-			print '(5) Linespoints (Autozero)'
-			print '(6) Boxes (Autozero)'
-			print '(7) Boxes (Autozero) + Label'
-			user = raw_input('Style [1]: ')
+			print CL_TXT + '(1) Lines' + CL_E
+			print CL_TXT + '(2) Linespoints' + CL_E
+			print CL_TXT + '(3) Boxes' + CL_E
+			print CL_TXT + '(4) Boxes + Label' + CL_E
+			print CL_TXT + '(5) Linespoints (Autozero)' + CL_E
+			print CL_TXT + '(6) Boxes (Autozero)' + CL_E
+			print CL_TXT + '(7) Boxes (Autozero) + Label' + CL_E
+			user = raw_input(CL_TXT + 'Style [' + CL_DEF + '1' + CL_TXT + ']: ' + CL_E)
 			end(user)
 			if not user:
 				user = 1
@@ -342,7 +392,7 @@ class plot_class(object):
 					user = int(user)
 					correct = True
 				except Exception, e:
-					print 'Please enter a valid option.'
+					print CL_INF + 'Please enter a valid option.' + CL_E
 			print
 
 		if user == 2:
@@ -367,7 +417,7 @@ class plot_class(object):
 
 
 	def chose_count(self):
-		user = raw_input('Count entries? [no]: ')
+		user = raw_input(CL_TXT + 'Count entries? [' + CL_DEF + 'no' + CL_TXT + ']: ' + CL_E)
 		end(user)
 
 		print
@@ -377,7 +427,7 @@ class plot_class(object):
 
 		if not user == 'no':
 			self.count = True
-			user = raw_input('Rate: (y)ear, (m)onth or (d)ay? [day]: ')
+			user = raw_input(CL_TXT + 'Rate: (y)ear, (m)onth or (d)ay? [' + CL_DEF + 'day' + CL_TXT + ']: ' + CL_E)
 			end(user)
 			if user.lower() == 'year' or user.lower() == 'y':
 				self.rate = '%Y'
@@ -390,7 +440,7 @@ class plot_class(object):
 				self.start = self.start[0:7]
 				self.ende = self.ende[0:7]
 		else:
-			user = raw_input('Rate: (y)ear, (m)onth or (n)ormal? [normal]: ')
+			user = raw_input(CL_TXT + 'Rate: (y)ear, (m)onth or (n)ormal? [' + CL_DEF + 'normal' + CL_TXT + ']: ' + CL_E)
 			end(user)
 			if user.lower() == 'year' or user.lower() == 'y':
 				self.start = self.start[0:4]
@@ -409,7 +459,7 @@ class plot_class(object):
 		# get start date
 		correct = False
 		while not correct:
-			user = raw_input('Timespan start [' + self.start + ']: ')
+			user = raw_input(CL_TXT + 'Timespan start [' + CL_DEF + self.start + CL_TXT + ']: ' + CL_E)
 			end(user)
 			if not user:
 				user = self.start
@@ -424,13 +474,13 @@ class plot_class(object):
 					self.start = datetime.datetime.strptime(user, '%Y').strftime('%Y')
 				correct = True
 			except Exception, e:
-				print 'Please enter a valid date in the shown format.'
+				print CL_INF + 'Please enter a valid date in the shown format.' + CL_E
 				print
 
 		# get end date
 		correct = False
 		while not correct:
-			user = raw_input('Timespan end [' + self.ende + ']: ')
+			user = raw_input(CL_TXT + 'Timespan end [' + CL_DEF + self.ende + CL_TXT + ']: ' + CL_E)
 			end(user)
 			if not user:
 				user = self.ende
@@ -446,7 +496,7 @@ class plot_class(object):
 				correct = True
 				print
 			except Exception, e:
-				print 'Please enter a valid date in the shown format.'
+				print CL_INF + 'Please enter a valid date in the shown format.' + CL_E
 				print
 
 		# check if mode is "count entries" or not
@@ -454,7 +504,7 @@ class plot_class(object):
 		if not self.count:
 			correct = False
 			while not correct:
-				user = raw_input('Show (t)otal or (r)elative values? [total]: ')
+				user = raw_input(CL_TXT + 'Show (t)otal or (r)elative values? [' + CL_DEF + 'total' + CL_TXT + ']: ' + CL_E)
 				end(user)
 				if not user:
 					user = 'total'
@@ -466,7 +516,7 @@ class plot_class(object):
 					# check if past values should be included, if ouput contains total values
 					correct2 = False
 					while not correct2:
-						user = raw_input('Include past values? [yes]: ')
+						user = raw_input(CL_TXT + 'Include past values? [' + CL_DEF + 'yes' + CL_TXT + ']: ' + CL_E)
 						end(user)
 						if not user:
 							user = 'yes'
@@ -477,10 +527,10 @@ class plot_class(object):
 							self.span = '-p "from ' + self.start + ' to ' + self.ende + '"'
 							correct2 = True
 						else:
-							print 'Wrong input. Try again.'
+							print CL_INF + 'Wrong input. Try again.' + CL_E
 					correct = True
 				else:
-					print 'Wrong input. Try again.'
+					print CL_INF + 'Wrong input. Try again.' + CL_E
 
 		print
 		self.chose_accounts()
@@ -489,19 +539,19 @@ class plot_class(object):
 	def chose_accounts(self):
 		global ledger_file
 
-		print '(+ " not: NAME1, NAME2, ..." = exclude accounts)'
-		print '(+ " par: PARAMETERS" = manual parameters)'
+		print CL_DIM + '(+ " not: NAME1, NAME2, ..." = exclude accounts)' + CL_E
+		print CL_DIM + '(+ " par: PARAMETERS" = manual parameters)' + CL_E
 		print
 
 		correct = False
 		while not correct:
-			print 'Accounts: ' + ', '.join(self.accnames)
-			user = raw_input('Add account: ')
+			print CL_TXT + 'Accounts: ' + ', '.join(self.accnames) + CL_E
+			user = raw_input(CL_TXT + 'Add account: ' + CL_E)
 			end(user)
 			if not user and not len(self.accounts) == 0:
 				correct = True
 			elif not user and len(self.accounts) == 0:
-				print 'Please enter at least one account name.'
+				print CL_INF + 'Please enter at least one account name.' +CL_E
 			else:
 				if not user in self.accnames:
 					if user == ' ':
@@ -510,7 +560,7 @@ class plot_class(object):
 							# add 'All' to the account names list
 							self.accnames.append('All')
 						else:
-							print 'Account already added.'
+							print CL_INF + 'Account already added.' + CL_E
 					else:
 						# add user input to account names list
 						if not 'not:' in user and 'par:' in user:
@@ -529,7 +579,7 @@ class plot_class(object):
 							self.accnames.append(user)
 					self.accounts.append( self.get_array(ledger_file, user) )
 				else:
-					print 'Account already added.'
+					print CL_INF + 'Account already added.' + CL_E
 			print
 
 		print
