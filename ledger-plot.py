@@ -8,7 +8,7 @@ import os, sys, datetime, re, imp
 ### ### ###
 
 # !!!!! SET YOU INDIVIDUAL SETTINGS FILE HERE
-# !!!!! IT MUST BE SET UP LIKE THE 'ledger-add-settings-default.py' FILE
+# !!!!! IT MUST BE SET UP LIKE THE 'ledger-plot-settings-default.py' FILE
 ####
 ###
 #
