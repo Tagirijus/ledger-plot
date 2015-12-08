@@ -156,6 +156,7 @@ class plot_class(object):
 		self.frequency	= ''
 		self.accounts	= []
 		self.accnames	= []
+		self.invert		= []
 
 
 	def get_array(self, ledger_file, account):
@@ -578,6 +579,12 @@ class plot_class(object):
 							# no exclude accounts
 							self.accnames.append(user)
 					self.accounts.append( self.get_array(ledger_file, user) )
+					# should values of this account be inverted / multiplicated by -1 ?
+					user = raw_input(CL_TXT + 'Invert values of account ' + self.accnames[len(self.accnames)-1] + '? [' + CL_DEF + 'no' + CL_TXT + '] : ' + CL_E)
+					if user.lower() == 'y' or user.lower() == 'yes':
+						self.invert.append( True )
+					else:
+						self.invert.append( False )
 				else:
 					print CL_INF + 'Account already added.' + CL_E
 			print
@@ -666,17 +673,19 @@ class plot_class(object):
 
 		# generate data for all the selected accounts
 		for x in xrange(0,len(self.accounts)):
+			multi = -1 if self.invert[x] else 1
 			for y in xrange(0,len(self.accounts[x])):
-				print >> gp, str(self.accounts[x][y])
-				debug.append( str(self.accounts[x][y]) )
+				print >> gp, str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])) * multi) )
+				debug.append( str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])) * multi ) ) )
 			print >> gp, 'e'
 			debug.append( 'e' )
 
 			if self.label:
 				for y in xrange(0,len(self.accounts[x])):
+					multi = -1 if self.invert[x] else 1
 					# round the output number
-					print >> gp, str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(round(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])))) )
-					debug.append( str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(round(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])))) ) )
+					print >> gp, str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(round(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:]))) * multi) )
+					debug.append( str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(round(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:]))) * multi) ) )
 				print >> gp, 'e'
 				debug.append( 'e' )
 
