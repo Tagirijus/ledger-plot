@@ -39,7 +39,7 @@ else:
 
 # getting the variables from the settings file - don't change the values here!
 
-debug_output 	= False
+debug_output 	= True
 
 output_size 	= configuration.output_size
 output_file 	= configuration.output_file
@@ -674,10 +674,20 @@ class plot_class(object):
 			box_multi = 24 * 30
 			print >> gp, 'set format x "%Y-%m"'
 			debug.append( 'set format x "%Y-%m"' )
+			# set xtic / xlabel thing
+			print >> gp, 'set xtics format "%Y-%m"'
+			debug.append( 'set xticx format "%Y-%m"' )
+			print >> gp, 'set xtics 60*60*24*30'
+			debug.append( 'set xtics 60*60*24*30' )
 		elif (self.count and self.rate == '%Y') or (not self.count and self.frequency == '-Y'):
 			box_multi = 24 * 365
 			print >> gp, 'set format x "%Y"'
 			debug.append( 'set format x "%Y"' )
+			# set xtic / xlabel thing
+			print >> gp, 'set xtics format "%Y"'
+			debug.append( 'set xticx format "%Y"' )
+			print >> gp, 'set xtics 60*60*24*30*12'
+			debug.append( 'set xtics 60*60*24*30*12' )
 		else:
 			box_multi = 1
 
