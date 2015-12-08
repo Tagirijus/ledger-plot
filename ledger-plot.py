@@ -593,6 +593,29 @@ class plot_class(object):
 		self.generate_plot()
 
 
+	def get_range(self):
+		range_min = 0
+		range_max = 0
+
+		# get max and min values
+		for x in xrange(0,len(self.accounts)):
+			multi = -1 if self.invert[x] else 1
+			for y in xrange(0,len(self.accounts[x])):
+				val = int(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])) * multi
+				if val < range_min:
+					range_min = val
+				if val > range_max:
+					range_max = val
+
+		# get distance between teh two values
+		distance = abs(range_max - range_min)
+
+		# return range as string for gnuplot
+		if range_min >= 0:
+			return '[0:' + str(range_max + (distance/7)) + ']'
+		else:
+			return '[' + str(range_min - (distance/7)) + ':' + str(range_max + (distance/7)) + ']'
+
 	def generate_plot(self):
 		# generate genereal settings for output plot
 		debug = []
@@ -605,6 +628,10 @@ class plot_class(object):
 		debug.append( 'set xdata time' )
 		print >> gp, 'set xlabel "Date"'
 		debug.append( 'set xlabel "Date"' )
+
+		# get y range
+		print >> gp, 'set yrange ' + self.get_range()
+		debug.append( 'set yrange ' + self.get_range() )
 
 		# generate settings according to self.count setting
 		if self.count:
