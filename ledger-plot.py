@@ -39,7 +39,7 @@ else:
 
 # getting the variables from the settings file - don't change the values here!
 
-debug_output 	= True
+debug_output 	= False
 
 output_size 	= configuration.output_size
 output_file 	= configuration.output_file
