@@ -7,7 +7,7 @@ import os, sys, datetime, re, imp
 ### ### ### load configurarion file for variables
 ### ### ###
 
-# !!!!! SET YOU INDIVIDUAL SETTINGS FILE HERE
+# !!!!! SET YOUR INDIVIDUAL SETTINGS FILE HERE
 # !!!!! IT MUST BE SET UP LIKE THE 'ledger-plot-settings-default.py' FILE
 ####
 ###
@@ -157,6 +157,7 @@ class plot_class(object):
 		self.accounts	= []
 		self.accnames	= []
 		self.invert		= []
+		self.round		= True
 
 
 	def get_array(self, ledger_file, account):
@@ -414,6 +415,12 @@ class plot_class(object):
 			self.autozero = True
 			self.label = True
 
+		user = raw_input(CL_TXT + 'Round output? [' + CL_DEF + 'yes' + CL_TXT + '] ' + CL_E)
+		if user:
+			if user == 'n' or user == 'no':
+				self.round = False
+		print
+
 		self.chose_count()
 
 
@@ -601,7 +608,7 @@ class plot_class(object):
 		for x in xrange(0,len(self.accounts)):
 			multi = -1 if self.invert[x] else 1
 			for y in xrange(0,len(self.accounts[x])):
-				val = int(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])) * multi
+				val = float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:]) * multi
 				if val < range_min:
 					range_min = val
 				if val > range_max:
@@ -720,9 +727,13 @@ class plot_class(object):
 			if self.label:
 				for y in xrange(0,len(self.accounts[x])):
 					multi = -1 if self.invert[x] else 1
-					# round the output number
-					print >> gp, str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(round(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:]))) * multi) )
-					debug.append( str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(round(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:]))) * multi) ) )
+					# round the output number / or not
+					if self.round:
+						print >> gp, str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(round(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:]))) * multi) )
+						debug.append( str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(round(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:]))) * multi) ) )
+					else:
+						print >> gp, str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:]) * multi) )
+						debug.append( str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:]) * multi) ) )
 				print >> gp, 'e'
 				debug.append( 'e' )
 
