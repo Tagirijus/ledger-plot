@@ -161,6 +161,8 @@ class plot_class(object):
 
 
 	def get_array(self, ledger_file, account):
+		global is_time_journal
+
 		# generates an array from the ledger output (every line is an array entry)
 
 		# check if 'par:' exists for manual parameter adding
