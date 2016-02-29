@@ -193,7 +193,7 @@ class plot_class(object):
 		# check if mode is "count entries" or normal like "standard ledger analyze output"
 		if self.count:
 			# get the real first and the last date of the ledger journal and its account
-			tmp_led = os.popen( 'ledger -f ' + ledger_file + ' -p "from ' + self.start + ' to ' + self.ende + '" -J r ' + acc).read().splitlines()
+			tmp_led = os.popen( 'ledger -S date -f ' + ledger_file + ' -p "from ' + self.start + ' to ' + self.ende + '" -J r ' + acc).read().splitlines()
 			if len(tmp_led) > 1:
 				real_start = tmp_led[0].split(' ')[0].replace('-', '/')
 				real_ende  = tmp_led[len(tmp_led)-1].split(' ')[0].replace('-', '/')
@@ -213,7 +213,7 @@ class plot_class(object):
 					# getting actual date in cycle
 					this_date = (tmp_date + datetime.timedelta(days=x)).strftime(self.fmt)
 					# getting count from ledger output
-					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' ' + time_base + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
+					tmp_out = self.sum_counts( os.popen( 'ledger -S date -f ' + ledger_file + ' ' + time_base + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
 					if tmp_out == '' and self.autozero:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
@@ -234,7 +234,7 @@ class plot_class(object):
 					# getting actual date in cycle
 					this_date = add_month(tmp_date,x).strftime(self.fmt)
 					# getting count from ledger output
-					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' ' + time_base + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
+					tmp_out = self.sum_counts( os.popen( 'ledger -S date -f ' + ledger_file + ' ' + time_base + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
 					if tmp_out == '' and self.autozero:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
@@ -255,14 +255,14 @@ class plot_class(object):
 					# getting actual date in cycle
 					this_date = add_year(tmp_date,x).strftime(self.fmt)
 					# getting count from ledger output
-					tmp_out = self.sum_counts( os.popen( 'ledger -f ' + ledger_file + ' ' + time_base + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
+					tmp_out = self.sum_counts( os.popen( 'ledger -S date -f ' + ledger_file + ' ' + time_base + ' -p "' + this_date + '" --count accounts ' + acc).read().splitlines() )
 					# check if output is empty or not
 					if tmp_out == '' and self.autozero:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' 0' )
 					elif tmp_out:
 						out.append( datetime.datetime.strptime( this_date, self.fmt ).strftime( self.rate ) + ' ' + tmp_out.split(' ')[0] )
 		else:
-			out = self.fill_dates( os.popen('ledger -f ' + ledger_file + ' ' + time_base + ' ' + self.frequency + ' ' + self.span + ' ' + self.total + ' r ' + acc).read().splitlines() )
+			out = self.fill_dates( os.popen('ledger -S date -f ' + ledger_file + ' ' + time_base + ' ' + self.frequency + ' ' + self.span + ' ' + self.total + ' r ' + acc).read().splitlines() )
 
 		if is_time_journal:
 			out = self.time_convert(out)
