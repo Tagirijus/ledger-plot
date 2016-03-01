@@ -81,7 +81,8 @@ else:
 	# using the argument as the file
 	ledger_file = arguments[1]
 
-# check if it exists and if it's a real file
+# check if it exists and if it's a real file, and set is_time_journal to False ... or true
+is_time_journal = False
 if os.path.exists(ledger_file):
 	if not os.path.isfile(ledger_file):
 		print CL_INF + 'Given \'ledger file\' is not a file.' + CL_E
@@ -100,8 +101,6 @@ if os.path.exists(ledger_file):
 			# or check if at least a "; time" comment exists
 			if "; time" in journal_type:
 				is_time_journal = True
-			else:
-				is_time_journal = False
 
 
 
@@ -161,8 +160,6 @@ class plot_class(object):
 
 
 	def get_array(self, ledger_file, account):
-		global is_time_journal
-
 		# generates an array from the ledger output (every line is an array entry)
 
 		# check if 'par:' exists for manual parameter adding
