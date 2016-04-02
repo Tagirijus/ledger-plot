@@ -40,6 +40,7 @@ else:
 # getting the variables from the settings file - don't change the values here!
 
 debug_output 	= False
+copy_to_clip	= True
 
 output_size 	= configuration.output_size
 output_file 	= configuration.output_file
@@ -625,6 +626,7 @@ class plot_class(object):
 	def generate_plot(self):
 		# generate genereal settings for output plot
 		debug = []
+		self.clip  = ''
 		gp = os.popen('gnuplot -persist', 'w')
 		print >> gp, 'set terminal png size ' + output_size
 		debug.append( 'set terminal png size ' + output_size )
@@ -720,9 +722,11 @@ class plot_class(object):
 			for y in xrange(0,len(self.accounts[x])):
 				print >> gp, str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])) * multi) )
 				debug.append( str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])) * multi ) ) )
+				self.clip += str( self.accounts[x][y][0:self.accounts[x][y].find(' ')] + ' ' + str(int(float(self.accounts[x][y][self.accounts[x][y].find(' ')+1:])) * multi ) ) + '\n'
 			print >> gp, 'e'
 			debug.append( 'e' )
 
+			# and the label
 			if self.label:
 				for y in xrange(0,len(self.accounts[x])):
 					multi = -1 if self.invert[x] else 1
@@ -751,3 +755,9 @@ class plot_class(object):
 # start
 plot = plot_class()
 plot.chose_style()
+
+
+# copy output values to clipboard
+if copy_to_clip:
+	os.system('echo -n "' + plot.clip + '" | xclip -selection clipboard')
+	print 'Copied output to clipboard!'
