@@ -51,4 +51,4 @@ Here we see the added accounts and the entry field in which we can add an accoun
 
 When pressing `enter` now, the plotting will begin and output a file (specified in the python code in the configuration area).
 
-You can quit the program, b entering `.` in any entry field.
+You can quit the program, by entering `.` in any entry field.
