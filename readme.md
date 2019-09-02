@@ -52,3 +52,8 @@ Here we see the added accounts and the entry field in which we can add an accoun
 When pressing `enter` now, the plotting will begin and output a file (specified in the python code in the configuration area).
 
 You can quit the program, by entering `.` in any entry field.
+
+
+## (probably better) Bash scripts
+
+I found some really cool bash scripts on [Sundialdreams.com](https://www.sundialdreams.com/report-scripts-for-ledger-cli-with-gnuplot/). Feel free to check them out as well!
